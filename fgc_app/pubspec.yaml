@@ -1,0 +1,46 @@
+name: fgc_app
+description: "A new Flutter project."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.2 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+
+  flutter_native_splash: ^2.2.4
+
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter_native_splash:
+  android: true
+  ios: true
+  web: true
+
+  color: '#696969'
+  image: 'assets/images/fgc_logo.png'
+
+flutter:
+  assets:
+    - 'assets/images/'
+    - 'assets/json/'
+
+  fonts:
+    - family: GuiltyGear
+      fonts:
+        - asset: fonts/Impact_Strive.otf
+
+  uses-material-design: true
