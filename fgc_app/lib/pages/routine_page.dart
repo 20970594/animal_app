@@ -3,26 +3,27 @@ import 'dart:ffi';
 import 'package:fgc_app/data/routines.dart';
 import 'package:fgc_app/globals.dart';
 import 'package:fgc_app/pages/game_page.dart';
-import 'package:fgc_app/pages/routine_page.dart';
+import 'package:fgc_app/pages/home_page.dart';
 import 'package:fgc_app/pages/my_app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-
-
-class HomePage extends StatefulWidget{
-  const HomePage({super.key});
+class RoutinePage extends StatefulWidget{
+  const RoutinePage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() {
-    print('create state');
-    return _HomePageState();
-  }
+  State<RoutinePage> createState() => _RoutinePage();
 }
 
-class _HomePageState extends State<HomePage> {
+class _RoutinePage extends State<RoutinePage> {
   
+  String dropdownValue='one';
+  String? dropdownCharValue;
+  String? dropdownActionValue;
+  String? dropdownAgainstValue;
+  String? dropdownAttackValue;
+  int menu = 1;
 
   Future<List<Routine>>? _routinesFuture;
   List<Routine> _routines = [];
@@ -53,11 +54,16 @@ class _HomePageState extends State<HomePage> {
     _routinesFuture = Routine.loadRoutines();
     _routines = _buildRoutinesList();
   }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     print("didChangeDependencies() called.");
+  }
+
+  void _incrementMenu() {
+    setState(() {
+      menu++;
+    });
   }
 
   @override
@@ -113,44 +119,8 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(height: 10),
-            GestureDetector(onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => SimpleDialog(
-                  contentPadding: EdgeInsets.all(10),
-                  backgroundColor: Colors.grey[850],
-                  children: <Widget>[
-                    Column(mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Text('Tareas',
-                            style: TextStyle(color: Colors.white, fontSize: 20), textAlign: TextAlign.start,) 
-                        ],
-                      ),
-                      Card(margin: EdgeInsets.all(1), color: Colors.grey[500],
-                        child: const Column(mainAxisAlignment: MainAxisAlignment.start,
-                          children: <Widget>[
-                            SizedBox(height: 10,),
-                            Text('Realiza un movimiento especial',
-                              style: TextStyle(color: Colors.white, fontSize: 16),textAlign: TextAlign.start),
-                            Text('Realiza un super',
-                              style: TextStyle(color: Colors.white, fontSize: 16),textAlign: TextAlign.start,),
-                            Text('Bloquea un ataque alto',
-                              style: TextStyle(color: Colors.white, fontSize: 16),textAlign: TextAlign.start),
-                            Text('Bloquea un ataque bajo',
-                              style: TextStyle(color: Colors.white, fontSize: 16),textAlign: TextAlign.start),
-                          ],
-                        ),
-                      ),   
-                    ],
-                    )
-                  ]
-                ),
-              );
-            },
-              child:Card(margin: EdgeInsets.all(20), color: Colors.grey[850],
-                child: const Column(
+              Card(margin: EdgeInsets.all(10), color: Colors.grey[850],
+                child: Column(
                   children: <Widget>[
                     SizedBox(height: 10,),
                     Row(
@@ -158,6 +128,104 @@ class _HomePageState extends State<HomePage> {
                         SizedBox(width: 10,),
                         SizedBox(height: 30, width: 150,
                           child: Text('Rutina facil',
+                            style: TextStyle(color: Colors.white, fontSize: 20), textAlign: TextAlign.center,) 
+                        ),
+                        SizedBox(height: 26, width: 150,
+                          child: Text('Tareas pendientes',
+                            style: TextStyle(color: Colors.white, fontSize: 16), textAlign: TextAlign.center,) 
+                        ),
+                        SizedBox(width: 50,),
+                        PopupMenuButton(
+                          iconColor: Colors.white,
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              child: Text("Detalles"),
+                              onTap: (){
+                                showDialog(
+                                    context: context,
+                                    builder: (context) => SimpleDialog(
+                                      contentPadding: EdgeInsets.all(20),
+                                      backgroundColor: Colors.grey[850],
+                                      children: <Widget>[
+                                        Column(mainAxisAlignment: MainAxisAlignment.start,
+                                        children: <Widget>[
+                                          Row(
+                                            children: <Widget>[
+                                              Text('',
+                                                style: TextStyle(color: Colors.white, fontSize: 20), textAlign: TextAlign.center,) 
+                                            ],
+                                          ),
+                                        ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                              },
+                            ),
+                            PopupMenuItem(
+                              child: Text("Historial"),
+                              onTap: (){
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => SimpleDialog(
+                                    contentPadding: EdgeInsets.all(20),
+                                    backgroundColor: Colors.grey[850],
+                                    children: <Widget>[
+                                      Column(mainAxisAlignment: MainAxisAlignment.start,
+                                      children: <Widget>[
+                                        Row(
+                                          children: <Widget>[
+                                            Text('Historial',
+                                              style: TextStyle(color: Colors.white, fontSize: 20), textAlign: TextAlign.center,) 
+                                          ],
+                                        ),
+                                      ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10,),
+                  ]
+                )
+              ),
+            
+            SizedBox(height: 10,),
+            GestureDetector(onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  contentPadding: EdgeInsets.all(20),
+                  backgroundColor: Colors.grey[850],
+                  children: <Widget>[
+                    Column(mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Text('Tareas',
+                            style: TextStyle(color: Colors.white, fontSize: 20), textAlign: TextAlign.center,) 
+                        ],
+                      )
+                    ],
+                    )
+                  ]
+                ),
+              );
+            },
+              child:Card(margin: EdgeInsets.all(10), color: Colors.grey[850],
+                child: const Column(
+                  children: <Widget>[
+                    SizedBox(height: 10,),
+                    Row(
+                      children: <Widget>[
+                        SizedBox(width: 10,),
+                        SizedBox(height: 30, width: 200,
+                          child: Text('Rutina Intermedia',
                             style: TextStyle(color: Colors.white, fontSize: 20), textAlign: TextAlign.center,) 
                         ),
                         SizedBox(height: 26, width: 150,
@@ -171,7 +239,6 @@ class _HomePageState extends State<HomePage> {
                 )
               ),
             ),
-            SizedBox(height: 10,),
           ],
         ),
       ),
