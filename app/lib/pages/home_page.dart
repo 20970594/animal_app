@@ -1,9 +1,5 @@
-import 'dart:ffi';
 
-import 'package:fgc_app/pages/my_app.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 
 
@@ -41,7 +37,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
         backgroundColor: Colors.grey[850],
-        body: Center(
+        body: const Center(
           child: Column()
         ),
     );
