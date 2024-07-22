@@ -18,9 +18,16 @@ class Picture{
     };
   }
 
+  static Map<String, Object?> fromUrltoMap(String url) {
+    return {
+      'id': null,
+      'url': url,
+    };
+  }
+
   static Picture fromMap(Map<String,dynamic> map){
     return Picture(
-      id: map['id'] as int,
+      id: map['id'] as int?,
       url: map['url'] as String,
     );
   }
@@ -30,9 +37,11 @@ class Picture{
     return 'Picture{id: $id, url: $url';
   }
 
+
+
   factory Picture.fromJson(Map<String, dynamic> json){
     return Picture(
-      id: json['id'] as int,
+      id: json['id'] as int?,
       url: json['url'] as String,
     );
   }

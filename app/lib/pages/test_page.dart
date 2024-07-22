@@ -11,6 +11,10 @@ import 'package:sqflite/sqflite.dart';
 import 'home_page.dart';
 import 'package:fgc_app/data/picture.dart';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:cached_network_image/cached_network_image.dart';
+
 class Test extends StatefulWidget {
   const Test({super.key});
 
@@ -23,7 +27,7 @@ class Test extends StatefulWidget {
 
 class _Test extends State<Test>{
 
-  Future<List<Picture>>? _picturesFuture;
+  late Future<List<Picture>>? _picturesFuture;
   List<Picture> _pictures = [];
 
   _Test(){print('constructor, mounted: $mounted');}
@@ -32,7 +36,8 @@ class _Test extends State<Test>{
   void initState(){
     print("initState() called.");
     super.initState();
-    _picturesFuture = Picture.loadPictures();
+    //_picturesFuture = Picture.loadPictures();
+    _picturesFuture = fetchImages();
     _pictures = _buildPictureList();
   }
 
@@ -40,6 +45,19 @@ class _Test extends State<Test>{
   void didChangeDependencies() {
     print('didChangeDependencies()');
     super.didChangeDependencies();
+  }
+
+  Future<List<Picture>> fetchImages() async {
+    final response = await http.get(Uri.parse('https://random-d.uk/api/random?type=jpg'));
+    if (response.statusCode == 200) {
+      final jsonString = response.body;
+      final jsonStringMod = '[$jsonString]';
+      print(jsonDecode(jsonStringMod));
+      final List<dynamic> jsonResponse = jsonDecode(jsonStringMod) as List<dynamic>;
+      return jsonResponse.map((dynamic image) => Picture.fromJson(image as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception('Hubo un fallo al encontrar imagenes');
+    }
   }
 
   @override
@@ -67,10 +85,11 @@ class _Test extends State<Test>{
                 }
                 else{
                   final pictures = snapshot.data!;
+                  print(pictures[0].url);
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Image(image: AssetImage(pictures[0].url)),
+                      Image.network(pictures[0].url),
                       ElevatedButton(
                         onPressed: () {
                           _insertNewPicture(pictures[0].url);
