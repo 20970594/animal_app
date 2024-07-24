@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:fgc_app/data/picture.dart';
+
 
 class PictureDatabase{
   PictureDatabase._privateConstructor();
@@ -7,7 +12,7 @@ class PictureDatabase{
   static final PictureDatabase instance = PictureDatabase._privateConstructor();
 
   static const _databaseName = 'picture_database.db';
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 3;
 
   Future<Database> get database async{
     final databasePath = await getDatabasesPath();
@@ -51,7 +56,7 @@ class PictureDatabase{
           }
         }
       },
-      version: 1,
+      version: 3,
     );
   }
 
@@ -64,10 +69,48 @@ class PictureDatabase{
     );
   }
 
+  Future<void> updateJson()async{
+    final database = await PictureDatabase.instance.database;
+    final List<Map<String, dynamic>> picturesFromDatabase = await database.query(
+      'picture',
+      orderBy: 'id',
+    );
+    String jsonString =  jsonEncode(picturesFromDatabase);
+    File file = File('assets/json/pictures.json');
+    await file.writeAsString(jsonString);
+  }
+
+  Future<void> deleteAndReorderPictures(int id) async{
+    final database = await PictureDatabase.instance.database;
+    await database.delete('picture', where: 'id = ?',whereArgs: [id]);
+
+    // Obtener todos los registros restantes ordenados por ID
+    final List<Map<String, dynamic>> remainingPictures = await database.query(
+      'picture',
+      orderBy: 'id',
+    );
+
+    // Eliminar todos los registros restantes
+    await database.delete('picture');
+
+    // Reinserta los registros con nuevos IDs secuenciales
+    int newId = 1;
+    for (var picture in remainingPictures) {
+      await database.insert(
+        'picture',
+        {'id': newId, 'url': picture['url']},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      newId++;
+    }
+  }
+  
   Future<List<Picture>> getPictures() async{
     final database = await PictureDatabase.instance.database;
     final List<Map<String, dynamic>> maps = await database.query('picture');
     return List.generate(maps.length, (i) => Picture.fromMap(maps[i]));
   }
+
+
 }
 

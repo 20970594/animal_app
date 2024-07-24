@@ -6,14 +6,15 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
 
-import 'home_page.dart';
 import 'package:fgc_app/data/picture.dart';
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
+
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class Test extends StatefulWidget {
   const Test({super.key});
@@ -37,7 +38,7 @@ class _Test extends State<Test>{
     print("initState() called.");
     super.initState();
     //_picturesFuture = Picture.loadPictures();
-    _picturesFuture = fetchImages();
+    _picturesFuture = fetchImages(3);
     _pictures = _buildPictureList();
   }
 
@@ -47,17 +48,47 @@ class _Test extends State<Test>{
     super.didChangeDependencies();
   }
 
-  Future<List<Picture>> fetchImages() async {
-    final response = await http.get(Uri.parse('https://random-d.uk/api/random?type=jpg'));
-    if (response.statusCode == 200) {
-      final jsonString = response.body;
-      final jsonStringMod = '[$jsonString]';
-      print(jsonDecode(jsonStringMod));
-      final List<dynamic> jsonResponse = jsonDecode(jsonStringMod) as List<dynamic>;
-      return jsonResponse.map((dynamic image) => Picture.fromJson(image as Map<String, dynamic>)).toList();
-    } else {
-      throw Exception('Hubo un fallo al encontrar imagenes');
+  Future<List<Picture>> fetchImages(int type) async {// 1:patos / 2:perros / 3:gatos
+    List<dynamic> imagesList = [];
+    if(type==1){
+      for(int i=0;i<5;i++){
+        final response = await http.get(Uri.parse('https://random-d.uk/api/random?type=jpg'));
+        if (response.statusCode == 200) {
+        imagesList.add(jsonDecode(response.body) as dynamic);
+        } else {
+          throw Exception('Hubo un fallo al encontrar imagenes');
+        }
+      }
     }
+    else if(type==2){
+      String jsonString = "";
+      for(int i=0;i<5;i++){
+        final response = await http.get(Uri.parse('https://dog.ceo/api/breeds/image/random'));
+        if (response.statusCode == 200) {
+        jsonString = response.body;
+        jsonString=jsonString.replaceAll('message', 'url');
+        imagesList.add(jsonDecode(jsonString) as dynamic);
+        } else {
+          throw Exception('Hubo un fallo al encontrar imagenes');
+        }
+      }
+    }
+    else if(type==3){
+      String jsonString = "";
+      for(int i=0;i<5;i++){
+        final response = await http.get(Uri.parse('https://api.thecatapi.com/v1/images/search'));
+        if (response.statusCode == 200) {
+        List<dynamic> jsonResponse = json.decode(response.body);
+        jsonString = jsonResponse[0]['url'];
+        jsonString='{"url":"$jsonString"}';
+        imagesList.add(jsonDecode(jsonString) as dynamic);
+        } else {
+          throw Exception('Hubo un fallo al encontrar imagenes');
+        }
+      }
+    }
+    
+    return imagesList.map((dynamic image) => Picture.fromJson(image as Map<String, dynamic>)).toList();
   }
 
   @override
@@ -65,9 +96,20 @@ class _Test extends State<Test>{
     
     return Scaffold(
       
-      backgroundColor: Colors.grey[850],
+      backgroundColor: Colors.green,
       appBar: AppBar(
         title: Text('Test'),
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.green[700],
+        child:ListView(
+          children: [
+            ListTile(
+              title: Text("Galeria",style: TextStyle(color: Colors.white, fontSize: 30)),
+              onTap: (){Navigator.push(context, MaterialPageRoute(builder: (context)=>const Show()));},
+            ),
+          ],
+        )
       ),
       body: Center(
         child: Column(
@@ -95,6 +137,12 @@ class _Test extends State<Test>{
                           _insertNewPicture(pictures[0].url);
                         },
                         child: Text('Guardar'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          PictureDatabase.instance.deleteAndReorderPictures(1);
+                        },
+                        child: Text('reordenar'),
                       )
                     ],
                   );
@@ -107,6 +155,12 @@ class _Test extends State<Test>{
                 MaterialPageRoute(builder: (context) => Show()));
               },
               child: Text('Mostrar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                PictureDatabase.instance.updateJson();
+              },
+              child: Text('Guardar en archivo'),
             )
           ],
         )

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fgc_app/utils/pictureDatabase.dart';
 import 'package:flutter/material.dart';
 
@@ -48,35 +49,37 @@ class _Show extends State<Show>{
       appBar: AppBar(
         title: Text('Show'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('hola'),
-            FutureBuilder<List<Picture>>(
+      body: FutureBuilder<List<Picture>>(
               future: _picturesFuture,
               builder: (context, snapshot) {
-                if(snapshot.connectionState == ConnectionState.waiting){
-                  return const Center(child: CircularProgressIndicator());
-                }
-                else if(snapshot.hasError){
-                  return Text('Error: ${snapshot.error}');
-                }
-                else{
-                  final pictures = snapshot.data!;
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Image(image: AssetImage(pictures[0].url))
-                    ],
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  print('Error: ${snapshot.error}');
+                  return Center(child: Text('Hubo un fallo al encontrar imagenes'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  print('No images found');
+                  return Center(child: Text('No se encontraron imagenes'));
+                } else {
+                  return GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 4.0,
+                      mainAxisSpacing: 4.0,
+                    ),
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      return CachedNetworkImage(
+                        imageUrl: snapshot.data![index].url,
+                        placeholder: (context, url) => CircularProgressIndicator(),
+                        errorWidget: (context, url, error) => Icon(Icons.error),
+                      );
+                    },
                   );
                 }
               },
             ),
-          ],
-        )
-      ),
-    );
+        );
   }
 
   /*Future<void> _insertNewPicture(String urlFromImage) async {
