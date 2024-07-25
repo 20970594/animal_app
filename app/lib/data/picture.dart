@@ -48,7 +48,7 @@ class Picture{
   static Future<List<Picture>> loadPictures() async{
     final jsonString = await rootBundle.loadString('assets/json/pictures.json');
     final List<dynamic> jsonDecoded = jsonDecode(jsonString) as List<dynamic>;
-    print("test----:$jsonDecoded");
+    //print("test----:$jsonDecoded");
     return jsonDecoded.map((dynamic item) => Picture.fromJson(item as Map<String, dynamic>)).toList();
   }
 }

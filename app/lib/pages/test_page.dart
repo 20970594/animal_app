@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:fgc_app/data/picture.dart';
 
@@ -15,6 +15,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'dart:io';
 
 class Test extends StatefulWidget {
   const Test({super.key});
@@ -31,12 +34,18 @@ class _Test extends State<Test>{
   late Future<List<Picture>>? _picturesFuture;
   List<Picture> _pictures = [];
 
+  //filtro de imagenes
+  bool _duckRate = true;
+  bool _dogRate = true;
+  bool _catRate = true;
+
   _Test(){print('constructor, mounted: $mounted');}
 
   @override
   void initState(){
     print("initState() called.");
     super.initState();
+    LoadLocalJson();
     //_picturesFuture = Picture.loadPictures();
     _picturesFuture = fetchImages(3);
     _pictures = _buildPictureList();
@@ -96,12 +105,12 @@ class _Test extends State<Test>{
     
     return Scaffold(
       
-      backgroundColor: Colors.green,
+      backgroundColor: const Color.fromARGB(255, 24, 147, 28),
       appBar: AppBar(
         title: Text('Test'),
       ),
       drawer: Drawer(
-        backgroundColor: Colors.green[700],
+        backgroundColor: const Color.fromARGB(255, 5, 180, 14),
         child:ListView(
           children: [
             ListTile(
@@ -135,6 +144,7 @@ class _Test extends State<Test>{
                       ElevatedButton(
                         onPressed: () {
                           _insertNewPicture(pictures[0].url);
+                          _storageInLocal(pictures[0]);
                         },
                         child: Text('Guardar'),
                       ),
@@ -158,7 +168,7 @@ class _Test extends State<Test>{
             ),
             ElevatedButton(
               onPressed: () {
-                PictureDatabase.instance.updateJson();
+                SaveOnLocalJson();
               },
               child: Text('Guardar en archivo'),
             )
@@ -168,20 +178,26 @@ class _Test extends State<Test>{
     );
   }
 
+  Future<void> _storageInLocal(Picture image) async{
+    var _var = await http.get(Uri.parse(image.url));
+    Directory directory = await getApplicationDocumentsDirectory();
+    File file = new File(path.join(directory.path, path.basename(image.url)));
+    await file.writeAsBytes(_var.bodyBytes);
+  }
+
   Future<void> _insertNewPicture(String urlFromImage) async {
     
     final picture = Picture(
-      url: urlFromImage//donde deberia ir la info sacada de la API
+      url: urlFromImage
     );
     await PictureDatabase.instance.insertPicture(picture);
-    _picturesFuture = PictureDatabase.instance.getPictures(); // Refresh data
-    setState(() {}); // Rebuild the UI with the updated list
+    _picturesFuture = PictureDatabase.instance.getPictures();
+    setState(() {});
   }
 
   List<Picture> _buildPictureList() {
-    // Handle potential loading state (replace with actual error handling)
     if (_picturesFuture == null) {
-      return []; // Or show an empty list message
+      return [];
     }
     _picturesFuture!.then((result) {
       for (var item in result) {
@@ -189,6 +205,27 @@ class _Test extends State<Test>{
       }
     });
     return _pictures;
+  }
+  //quede en que tengo que encontrar una forma de hacer que cree el file json una sola vez la primera vez que se entra a la app, revisar chat gpt
+  Future<void> LoadLocalJson()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isFirstTime = prefs.getBool('isFirstTime')??true;
+    if(isFirstTime){
+      String jsonString = await rootBundle.loadString('assets/json/pictures.json');
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      String thisPath = path.join(documentsDirectory.path, 'pictures.json');
+
+      File file = File(thisPath);
+      await file.writeAsString(jsonString);
+      await prefs.setBool('isFirstTime', false);
+    }
+  }
+  Future<void> SaveOnLocalJson()async{
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String thisPath = path.join(documentsDirectory.path, 'pictures.json');
+
+    File file = File(thisPath);
+    PictureDatabase.instance.updateJson(file);
   }
   @override
   void didUpdateWidget(covariant Test oldWidget) {

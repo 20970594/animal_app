@@ -69,14 +69,18 @@ class PictureDatabase{
     );
   }
 
-  Future<void> updateJson()async{
+  Future<void> updateJson(File file)async{
     final database = await PictureDatabase.instance.database;
     final List<Map<String, dynamic>> picturesFromDatabase = await database.query(
       'picture',
       orderBy: 'id',
     );
-    String jsonString =  jsonEncode(picturesFromDatabase);
-    File file = File('assets/json/pictures.json');
+    String jsonString = '[';
+    for(Map<String, dynamic> map in picturesFromDatabase){
+      jsonString = '$jsonString'+',$map]';
+    }
+    jsonString = jsonString.replaceAll('[,', '[');
+    print('updateJson: $jsonString');
     await file.writeAsString(jsonString);
   }
 
@@ -84,16 +88,13 @@ class PictureDatabase{
     final database = await PictureDatabase.instance.database;
     await database.delete('picture', where: 'id = ?',whereArgs: [id]);
 
-    // Obtener todos los registros restantes ordenados por ID
     final List<Map<String, dynamic>> remainingPictures = await database.query(
       'picture',
       orderBy: 'id',
     );
 
-    // Eliminar todos los registros restantes
     await database.delete('picture');
 
-    // Reinserta los registros con nuevos IDs secuenciales
     int newId = 1;
     for (var picture in remainingPictures) {
       await database.insert(
