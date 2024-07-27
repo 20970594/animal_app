@@ -126,7 +126,7 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
         title: Row(
           children: [
             Text('Animal Roulette'),
-            SizedBox(width: 150,),
+            SizedBox(width: 50,),
             GestureDetector(
               onTap: () {
                 showDialog(
@@ -136,7 +136,7 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
                     applicationName: 'Animal Roulette',
                     applicationVersion: 'version 1.0.0',
                     children: [
-                      Text('Equipo:\nJosé Castillo\nDiego Ugarte\nIgnacio Silva')
+                      Text('Equipo:\nJosé Castillo\nDiego Ugarte\nIgnacio Silva \n \n Descripción: \n \n Esta aplicación te deja ver y guardar imagenes de gatos, perros y patos aleatorias. Esto gracias a que cada imagen es cargda desde distintas API.')
                     ],
                   )
                 );
