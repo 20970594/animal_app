@@ -12,7 +12,6 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'home_page.dart';
 import 'package:fgc_app/data/picture.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -54,7 +53,7 @@ class _Show extends State<Show>{
       
       backgroundColor: Colors.grey[850],
       appBar: AppBar(
-        title: Text('Show'),
+        title: Text('Galeria'),
       ),
       /*body: Center(
         child: FutureBuilder<String>(

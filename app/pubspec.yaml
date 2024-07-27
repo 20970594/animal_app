@@ -38,6 +38,7 @@ flutter_native_splash:
   web: true
 
   color: '#696969'
+  background_image: 'assets/images/background.png'
   image: 'assets/images/appLogo.png'
 
 flutter:

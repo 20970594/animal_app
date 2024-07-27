@@ -58,6 +58,7 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
   
   late Future<List<Picture>>? _picturesFuture;
   List<Picture> _pictures = [];
+  int _selected=0;
 
   //_Test(){print('constructor, mounted: $mounted');}
 
@@ -67,7 +68,7 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
     super.initState();
     //LoadLocalJson();
     //_picturesFuture = Picture.loadPictures();
-    _picturesFuture = fetchImages(3);
+    _picturesFuture = fetchImages();
     _pictures = _buildPictureList();
   }
 
@@ -77,7 +78,7 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
     super.didChangeDependencies();
   }
 
-  Future<List<Picture>> fetchImages(int type) async {// 1:patos / 2:perros / 3:gatos
+  Future<List<Picture>> fetchImages() async {// 1:patos / 2:perros / 3:gatos
     List<dynamic> imagesList = [];
       for(int i=0;i<10;i++){
         final response = await http.get(Uri.parse('https://random-d.uk/api/random?type=jpg'));
@@ -122,7 +123,32 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
       
       backgroundColor: Colors.green[900],
       appBar: AppBar(
-        title: Text('Test'),
+        title: Row(
+          children: [
+            Text('Animal Roulette'),
+            SizedBox(width: 150,),
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context)=> const AboutDialog(
+                    applicationIcon: SizedBox(width: 50, height: 50,child:Image(image: AssetImage('assets/images/appLogo.png'))),
+                    applicationName: 'Animal Roulette',
+                    applicationVersion: 'version 1.0.0',
+                    children: [
+                      Text('Equipo:\nJosé Castillo\nDiego Ugarte\nIgnacio Silva')
+                    ],
+                  )
+                );
+              },
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: Image(image: AssetImage('assets/images/info_icon.png')),
+              ),
+            )
+          ],
+        ),
       ),
       
       drawer: Drawer(
@@ -148,7 +174,6 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text('hola'),
               FutureBuilder<List<Picture>>(
                 future: _picturesFuture,
                 builder: (context, snapshot) {
@@ -169,64 +194,58 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
                       children: <Widget>[
                         //Image.network(pictures[0].url),
                         SizedBox(
-                          width: 300,
-                          height:300,
+                          width: 400,
+                          height:400,
                           child: ListWheelScrollViewX(
                             scrollDirection: Axis.horizontal,
                             physics: FixedExtentScrollPhysics(),
-                            itemExtent: 250,//pictures.length.toDouble(),
-                            children: values.map((value)=>buildCustomWidget(value)).toList()/*[
-                              Container(
-                                width: 250,
-                                height: 250,
-                                alignment: Alignment.center,
-                                child: Image.network(pictures[0].url,fit: BoxFit.contain),
-                              ),
-                              Container(
-                                width: 250,
-                                height: 250,
-                                alignment: Alignment.center,
-                                /*decoration: const BoxDecoration(
-                                  color: Colors.black,
-                                  shape: BoxShape.rectangle
-                                ),*/
-                                child: Image.network(pictures[1].url,fit: BoxFit.contain),
-                              )
-                            ],*/
+                            itemExtent: 350,
+                            children: values.map((value)=>buildCustomWidget(value)).toList(),
+                            onSelectedItemChanged: (value) => _selected=value,
                           ),
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            _insertNewPicture(pictures[0].url);
-                            //_storageInLocal(pictures[0]);
-                          },
-                          child: Text('Guardar'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            PictureDatabase.instance.deleteAndReorderPictures(1);
-                          },
-                          child: Text('reordenar'),
-                        ),
-                        /*ElevatedButton(
-                          onPressed: () {
-                            SaveOnLocalJson(pictures);
-                          },
-                          child: Text('Guardar en archivo'),
-                        )*/
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _insertNewPicture(pictures[_selected].url);
+                                },
+                                child: Image(image: AssetImage('assets/images/save_icon.png'),fit: BoxFit.contain,)
+                              )
+                            ),
+                            SizedBox(width: 20,),
+                            SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _insertNewPicture(pictures[_selected].url);
+                                },
+                                child: Image(image: AssetImage('assets/images/download_icon.png'),fit: BoxFit.contain,)
+                              )
+                            ),
+                            SizedBox(width: 20,),
+                            SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: GestureDetector(
+                                onTap: () {
+                                  _reloadList();
+                                },
+                                child: Image(image: AssetImage('assets/images/reload_icon.png'),fit: BoxFit.contain,)
+                              )
+                            ),
+                          ],
+                        )
                       ],
                     );
                   }
                 },
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(context, 
-                  MaterialPageRoute(builder: (context) => Show()));
-                },
-                child: Text('Mostrar'),
-              ),
-              
             ],
           )
         ),
@@ -241,13 +260,18 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
     await file.writeAsBytes(_var.bodyBytes);
   }*/
 
+  Future<void> _reloadList() async {
+    _picturesFuture = fetchImages();
+    setState(() {});
+  }
+
   Future<void> _insertNewPicture(String urlFromImage) async {
     
     final picture = Picture(
       url: urlFromImage
     );
     await PictureDatabase.instance.insertPicture(picture);
-    _picturesFuture = PictureDatabase.instance.getPictures();
+    //_picturesFuture = PictureDatabase.instance.getPictures();
     setState(() {});
   }
 
