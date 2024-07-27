@@ -6,9 +6,12 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as path;
+import 'package:path/path.dart';
 
 import 'package:fgc_app/data/picture.dart';
 import 'package:list_wheel_scroll_view_nls/list_wheel_scroll_view_nls.dart';
+import 'package:gallery_saver/gallery_saver.dart';
+//import 'package:image_picker/image_picker.dart';
 
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -223,7 +226,7 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
                               height: 100,
                               child: GestureDetector(
                                 onTap: () {
-                                  _insertNewPicture(pictures[_selected].url);
+                                  SaveOnLocal(pictures[_selected]);
                                 },
                                 child: Image(image: AssetImage('assets/images/download_icon.png'),fit: BoxFit.contain,)
                               )
@@ -301,36 +304,9 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
     }
   }*/
 
-  /*Future<void> SaveOnLocalJson(List<Picture> pictureList)async{
-    String? _localPicturePath;
-    final connectivityResult = await Connectivity().checkConnectivity();
-    final directory = await getApplicationDocumentsDirectory();
-    if(connectivityResult!=ConnectivityResult.none){
-      for(Picture picture in pictureList){
-        final filePath = join(directory.path, 'image');
-        if(!File(filePath).existsSync())
-        {
-          try {
-            final response = await Dio().download(picture.url, filePath);
-
-            if (response.statusCode == 200) {
-              setState(() {
-                _localPicturePath = filePath;
-              });
-            }
-          } catch (e) {
-              print('Error downloading image: $e');
-          }
-        }
-      }
-    }
-
-    /*Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String thisPath = path.join(documentsDirectory.path, 'pictures.json');
-
-    File file = File(thisPath);
-    PictureDatabase.instance.updateJson(file);*/
-  }*/
+  Future<void> SaveOnLocal(Picture picture)async{
+    await GallerySaver.saveImage(picture.url, toDcim: true);
+  }
 
   Widget buildCustomWidget(String value) {
     return Container(
