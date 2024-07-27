@@ -9,9 +9,13 @@ import 'package:path/path.dart' as path;
 
 import 'package:fgc_app/data/picture.dart';
 
+import 'package:dio/dio.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:path/path.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -45,7 +49,7 @@ class _Test extends State<Test>{
   void initState(){
     print("initState() called.");
     super.initState();
-    LoadLocalJson();
+    //LoadLocalJson();
     //_picturesFuture = Picture.loadPictures();
     _picturesFuture = fetchImages(3);
     _pictures = _buildPictureList();
@@ -105,85 +109,95 @@ class _Test extends State<Test>{
     
     return Scaffold(
       
-      backgroundColor: const Color.fromARGB(255, 24, 147, 28),
+      backgroundColor: Colors.green[900],
       appBar: AppBar(
         title: Text('Test'),
       ),
+      
       drawer: Drawer(
-        backgroundColor: const Color.fromARGB(255, 5, 180, 14),
+        backgroundColor: Colors.green[400],
         child:ListView(
           children: [
             ListTile(
-              title: Text("Galeria",style: TextStyle(color: Colors.white, fontSize: 30)),
+              title: Text("Galeria",style: TextStyle(color: Colors.black87, fontSize: 30)),
               onTap: (){Navigator.push(context, MaterialPageRoute(builder: (context)=>const Show()));},
             ),
           ],
         )
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('hola'),
-            FutureBuilder<List<Picture>>(
-              future: _picturesFuture,
-              builder: (context, snapshot) {
-                if(snapshot.connectionState == ConnectionState.waiting){
-                  return const Center(child: CircularProgressIndicator());
-                }
-                else if(snapshot.hasError){
-                  return Text('Error: ${snapshot.error}');
-                }
-                else{
-                  final pictures = snapshot.data!;
-                  print(pictures[0].url);
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Image.network(pictures[0].url),
-                      ElevatedButton(
-                        onPressed: () {
-                          _insertNewPicture(pictures[0].url);
-                          _storageInLocal(pictures[0]);
-                        },
-                        child: Text('Guardar'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          PictureDatabase.instance.deleteAndReorderPictures(1);
-                        },
-                        child: Text('reordenar'),
-                      )
-                    ],
-                  );
-                }
-              },
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, 
-                MaterialPageRoute(builder: (context) => Show()));
-              },
-              child: Text('Mostrar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                SaveOnLocalJson();
-              },
-              child: Text('Guardar en archivo'),
-            )
-          ],
-        )
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text('hola'),
+              FutureBuilder<List<Picture>>(
+                future: _picturesFuture,
+                builder: (context, snapshot) {
+                  if(snapshot.connectionState == ConnectionState.waiting){
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  else if(snapshot.hasError){
+                    return Text('Error: ${snapshot.error}');
+                  }
+                  else{
+                    final pictures = snapshot.data!;
+                    print(pictures[0].url);
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Image.network(pictures[0].url),
+                        ElevatedButton(
+                          onPressed: () {
+                            _insertNewPicture(pictures[0].url);
+                            //_storageInLocal(pictures[0]);
+                          },
+                          child: Text('Guardar'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            PictureDatabase.instance.deleteAndReorderPictures(1);
+                          },
+                          child: Text('reordenar'),
+                        ),
+                        /*ElevatedButton(
+                          onPressed: () {
+                            SaveOnLocalJson(pictures);
+                          },
+                          child: Text('Guardar en archivo'),
+                        )*/
+                      ],
+                    );
+                  }
+                },
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(context, 
+                  MaterialPageRoute(builder: (context) => Show()));
+                },
+                child: Text('Mostrar'),
+              ),
+              
+            ],
+          )
+        ),
       ),
     );
   }
 
-  Future<void> _storageInLocal(Picture image) async{
+  /*Future<void> _storageInLocal(Picture image) async{
     var _var = await http.get(Uri.parse(image.url));
     Directory directory = await getApplicationDocumentsDirectory();
     File file = new File(path.join(directory.path, path.basename(image.url)));
     await file.writeAsBytes(_var.bodyBytes);
-  }
+  }*/
 
   Future<void> _insertNewPicture(String urlFromImage) async {
     
@@ -206,8 +220,8 @@ class _Test extends State<Test>{
     });
     return _pictures;
   }
-  //quede en que tengo que encontrar una forma de hacer que cree el file json una sola vez la primera vez que se entra a la app, revisar chat gpt
-  Future<void> LoadLocalJson()async{
+
+  /*Future<void> LoadLocalJson()async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isFirstTime = prefs.getBool('isFirstTime')??true;
     if(isFirstTime){
@@ -219,14 +233,39 @@ class _Test extends State<Test>{
       await file.writeAsString(jsonString);
       await prefs.setBool('isFirstTime', false);
     }
-  }
-  Future<void> SaveOnLocalJson()async{
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+  }*/
+
+  /*Future<void> SaveOnLocalJson(List<Picture> pictureList)async{
+    String? _localPicturePath;
+    final connectivityResult = await Connectivity().checkConnectivity();
+    final directory = await getApplicationDocumentsDirectory();
+    if(connectivityResult!=ConnectivityResult.none){
+      for(Picture picture in pictureList){
+        final filePath = join(directory.path, 'image');
+        if(!File(filePath).existsSync())
+        {
+          try {
+            final response = await Dio().download(picture.url, filePath);
+
+            if (response.statusCode == 200) {
+              setState(() {
+                _localPicturePath = filePath;
+              });
+            }
+          } catch (e) {
+              print('Error downloading image: $e');
+          }
+        }
+      }
+    }
+
+    /*Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String thisPath = path.join(documentsDirectory.path, 'pictures.json');
 
     File file = File(thisPath);
-    PictureDatabase.instance.updateJson(file);
-  }
+    PictureDatabase.instance.updateJson(file);*/
+  }*/
+
   @override
   void didUpdateWidget(covariant Test oldWidget) {
     super.didUpdateWidget(oldWidget);

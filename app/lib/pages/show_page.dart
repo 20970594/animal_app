@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -28,6 +29,7 @@ class Show extends StatefulWidget {
 class _Show extends State<Show>{
 
   Future<List<Picture>>? _picturesFuture;
+  //Future<List<String>>? _pathsFuture;
 
   _Show(){print('constructor, mounted: $mounted');}
 
@@ -36,7 +38,7 @@ class _Show extends State<Show>{
     print("initState() called.");
     super.initState();
     _picturesFuture = PictureDatabase.instance.getPictures();
-    _getPictures();
+    //_pathsFuture=_getPictures();
   }
 
   @override
@@ -101,17 +103,60 @@ class _Show extends State<Show>{
             }
           },
         ),
+        /*body: FutureBuilder<List<String>>(
+          future: _pathsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              print('Error: ${snapshot.error}');
+              return Center(child: Text('Hubo un fallo al encontrar imagenes'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              print('No images found');
+              return Center(child: Text('No se encontraron imagenes'));
+            } else {
+              final paths = snapshot.data!;
+              return Image.file(File(paths[0]));
+              return GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 4.0,
+                  mainAxisSpacing: 4.0,
+                ),
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return CachedNetworkImage(
+                    imageUrl: snapshot.data![index].url,
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => Icon(Icons.error),
+                  );
+                },
+              );
+            }
+          },
+        ),*/
     );
   }
-  Future<void> _getPictures() async {
+  /*Future<List<String>> _getPictures() async {
   Directory documentsDirectory = await getApplicationDocumentsDirectory();
   String pathJson = join(documentsDirectory.path, 'pictures.json');
   File file = File(pathJson);
   String jsonString = file.readAsStringSync();
   print(file.readAsStringSync());
-  List<dynamic> PictureList = [];
-  
-}
+
+  List<dynamic> list= jsonDecode(jsonString);
+  List<Map<String,dynamic>> jsonList =[];
+  List<String> pathList = [];
+  for(Map<String,dynamic> json in list){
+    jsonList.add(json as Map<String,dynamic>);
+  }
+  for(Map<String,dynamic> json in jsonList){
+    //String a =json['url'];
+    pathList.add(join(documentsDirectory.path, 'image'));
+  }
+  print('Lista:$pathList');
+  return pathList;
+}*/
 
 /*Future<String> getImageFilePath() async {
   Directory documentsDirectory = await getApplicationDocumentsDirectory();

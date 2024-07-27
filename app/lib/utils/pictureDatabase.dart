@@ -77,9 +77,11 @@ class PictureDatabase{
     );
     String jsonString = '[';
     for(Map<String, dynamic> map in picturesFromDatabase){
-      jsonString = '$jsonString'+',$map]';
+      String currentMap = jsonEncode(map);
+      jsonString = '$jsonString'+',$currentMap';
     }
     jsonString = jsonString.replaceAll('[,', '[');
+    jsonString = '$jsonString]';
     print('updateJson: $jsonString');
     await file.writeAsString(jsonString);
   }
@@ -111,7 +113,5 @@ class PictureDatabase{
     final List<Map<String, dynamic>> maps = await database.query('picture');
     return List.generate(maps.length, (i) => Picture.fromMap(maps[i]));
   }
-
-
 }
 
