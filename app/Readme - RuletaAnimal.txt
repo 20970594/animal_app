@@ -1,8 +1,7 @@
 
-Githud:
-https://github.com/20970594/animal_app
+Github:https://github.com/20970594/animal_app/tree/merges
 
-Youtube: https://youtu.be/J7CJNpHuOhQ
+Video de youtube: https://youtu.be/J7CJNpHuOhQ
 
 Problemática general:
 Crear una app mediante flutter la cual pueda utilizar una API para obtener, enviar y compartir información.
