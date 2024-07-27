@@ -1,30 +1,13 @@
 import 'package:fgc_app/pages/show_page.dart';
 import 'package:fgc_app/utils/pictureDatabase.dart';
 import 'package:flutter/material.dart';
-
 import 'dart:async';
-
 import 'package:flutter/widgets.dart';
-import 'package:path/path.dart' as path;
-import 'package:path/path.dart';
-
 import 'package:fgc_app/data/picture.dart';
 import 'package:list_wheel_scroll_view_nls/list_wheel_scroll_view_nls.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-//import 'package:image_picker/image_picker.dart';
-
-import 'package:dio/dio.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:cached_network_image/cached_network_image.dart';
-
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:io';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -256,13 +239,6 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
     );
   }
 
-  /*Future<void> _storageInLocal(Picture image) async{
-    var _var = await http.get(Uri.parse(image.url));
-    Directory directory = await getApplicationDocumentsDirectory();
-    File file = new File(path.join(directory.path, path.basename(image.url)));
-    await file.writeAsBytes(_var.bodyBytes);
-  }*/
-
   Future<void> _reloadList() async {
     _picturesFuture = fetchImages();
     setState(() {});
@@ -274,7 +250,6 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
       url: urlFromImage
     );
     await PictureDatabase.instance.insertPicture(picture);
-    //_picturesFuture = PictureDatabase.instance.getPictures();
     setState(() {});
   }
 
@@ -289,20 +264,6 @@ class _Test extends State<Test> with SingleTickerProviderStateMixin{
     });
     return _pictures;
   }
-
-  /*Future<void> LoadLocalJson()async{
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isFirstTime = prefs.getBool('isFirstTime')??true;
-    if(isFirstTime){
-      String jsonString = await rootBundle.loadString('assets/json/pictures.json');
-      Directory documentsDirectory = await getApplicationDocumentsDirectory();
-      String thisPath = path.join(documentsDirectory.path, 'pictures.json');
-
-      File file = File(thisPath);
-      await file.writeAsString(jsonString);
-      await prefs.setBool('isFirstTime', false);
-    }
-  }*/
 
   Future<void> SaveOnLocal(Picture picture)async{
     await GallerySaver.saveImage(picture.url, toDcim: true);
