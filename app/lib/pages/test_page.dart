@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:fgc_app/data/picture.dart';
+import 'package:list_wheel_scroll_view_nls/list_wheel_scroll_view_nls.dart';
 
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -15,13 +16,33 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:path/path.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:io';
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        fontFamily: 'AngelineVintage',
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: Test(),
+      /*routes: {
+      //'/detail': (context) => const Test(),
+      //'/list': (context) => ListDetail(),
+    },*/
+    );
+  }
+}
 
 class Test extends StatefulWidget {
   const Test({super.key});
@@ -33,19 +54,14 @@ class Test extends StatefulWidget {
   }
 }
 
-class _Test extends State<Test>{
-
+class _Test extends State<Test> with SingleTickerProviderStateMixin{
+  
   late Future<List<Picture>>? _picturesFuture;
   List<Picture> _pictures = [];
 
-  //filtro de imagenes
-  bool _duckRate = true;
-  bool _dogRate = true;
-  bool _catRate = true;
+  //_Test(){print('constructor, mounted: $mounted');}
 
-  _Test(){print('constructor, mounted: $mounted');}
 
-  @override
   void initState(){
     print("initState() called.");
     super.initState();
@@ -63,8 +79,7 @@ class _Test extends State<Test>{
 
   Future<List<Picture>> fetchImages(int type) async {// 1:patos / 2:perros / 3:gatos
     List<dynamic> imagesList = [];
-    if(type==1){
-      for(int i=0;i<5;i++){
+      for(int i=0;i<10;i++){
         final response = await http.get(Uri.parse('https://random-d.uk/api/random?type=jpg'));
         if (response.statusCode == 200) {
         imagesList.add(jsonDecode(response.body) as dynamic);
@@ -72,10 +87,8 @@ class _Test extends State<Test>{
           throw Exception('Hubo un fallo al encontrar imagenes');
         }
       }
-    }
-    else if(type==2){
       String jsonString = "";
-      for(int i=0;i<5;i++){
+      for(int i=0;i<10;i++){
         final response = await http.get(Uri.parse('https://dog.ceo/api/breeds/image/random'));
         if (response.statusCode == 200) {
         jsonString = response.body;
@@ -85,10 +98,9 @@ class _Test extends State<Test>{
           throw Exception('Hubo un fallo al encontrar imagenes');
         }
       }
-    }
-    else if(type==3){
-      String jsonString = "";
-      for(int i=0;i<5;i++){
+      //puede dar error aparentemente
+      jsonString = "";
+      for(int i=0;i<10;i++){
         final response = await http.get(Uri.parse('https://api.thecatapi.com/v1/images/search'));
         if (response.statusCode == 200) {
         List<dynamic> jsonResponse = json.decode(response.body);
@@ -99,8 +111,7 @@ class _Test extends State<Test>{
           throw Exception('Hubo un fallo al encontrar imagenes');
         }
       }
-    }
-    
+      imagesList.shuffle();
     return imagesList.map((dynamic image) => Picture.fromJson(image as Map<String, dynamic>)).toList();
   }
 
@@ -132,6 +143,7 @@ class _Test extends State<Test>{
             fit: BoxFit.cover
           ),
         ),
+        
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -148,11 +160,41 @@ class _Test extends State<Test>{
                   }
                   else{
                     final pictures = snapshot.data!;
-                    print(pictures[0].url);
+                    final List<String> values = List<String>.filled(pictures.length,'',growable: false);
+                    for(int i = 0;i<pictures.length;i++){
+                      values[i]=pictures[i].url;
+                    }
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Image.network(pictures[0].url),
+                        //Image.network(pictures[0].url),
+                        SizedBox(
+                          width: 300,
+                          height:300,
+                          child: ListWheelScrollViewX(
+                            scrollDirection: Axis.horizontal,
+                            physics: FixedExtentScrollPhysics(),
+                            itemExtent: 250,//pictures.length.toDouble(),
+                            children: values.map((value)=>buildCustomWidget(value)).toList()/*[
+                              Container(
+                                width: 250,
+                                height: 250,
+                                alignment: Alignment.center,
+                                child: Image.network(pictures[0].url,fit: BoxFit.contain),
+                              ),
+                              Container(
+                                width: 250,
+                                height: 250,
+                                alignment: Alignment.center,
+                                /*decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.rectangle
+                                ),*/
+                                child: Image.network(pictures[1].url,fit: BoxFit.contain),
+                              )
+                            ],*/
+                          ),
+                        ),
                         ElevatedButton(
                           onPressed: () {
                             _insertNewPicture(pictures[0].url);
@@ -266,6 +308,15 @@ class _Test extends State<Test>{
     PictureDatabase.instance.updateJson(file);*/
   }*/
 
+  Widget buildCustomWidget(String value) {
+    return Container(
+      width: 250,
+      height: 250,
+      alignment: Alignment.center,
+      child: Image.network(value,fit: BoxFit.contain),
+    );
+  }
+
   @override
   void didUpdateWidget(covariant Test oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -290,3 +341,4 @@ class _Test extends State<Test>{
     print('reassemble, mounted: $mounted');
   }
 }
+

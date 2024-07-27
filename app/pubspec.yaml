@@ -24,6 +24,7 @@ dependencies:
   cached_network_image: ^3.2.0
 
   shared_preferences: ^2.0.13
+  list_wheel_scroll_view_nls: ^0.0.3
 
 dev_dependencies:
   flutter_test:
@@ -37,7 +38,7 @@ flutter_native_splash:
   web: true
 
   color: '#696969'
-  image: 'assets/images/fgc_logo.png'
+  image: 'assets/images/appLogo.png'
 
 flutter:
   assets:
